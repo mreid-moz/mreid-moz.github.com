@@ -3,9 +3,9 @@
 # ----------------------- #
 
 url: http://mreid-moz.github.io
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+title: Mark @ Mozilla
+subtitle: What I'm Up To
+author: Mark Reid
 simple_search: http://google.com/search
 description:
 
@@ -69,7 +69,7 @@ github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user:
+twitter_user: reid_write
 twitter_tweet_button: true
 
 # Google +1
