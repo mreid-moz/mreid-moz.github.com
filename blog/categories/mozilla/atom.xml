@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mozilla | Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/blog/categories/mozilla/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2013-06-10T14:58:58-03:00</updated>
+  <updated>2013-06-10T14:53:14-03:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -12,15 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[Test 2]]></title>
-    <link href="http://mreid-moz.github.io/blog/2013/06/10/test-2/"/>
-    <updated>2013-06-10T14:58:00-03:00</updated>
-    <id>http://mreid-moz.github.io/blog/2013/06/10/test-2</id>
-    <content type="html"><![CDATA[<p>Test number two</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[A New Project]]></title>
