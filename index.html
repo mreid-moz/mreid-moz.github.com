@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>My Octopress Blog</title>
-  <meta name="author" content="Your Name">
+  <title>Mark @ Mozilla</title>
+  <meta name="author" content="Mark Reid">
 
   
-  <meta name="description" content=" Blog Archives Recent Posts ">
+  <meta name="description" content="Over the coming weeks I&rsquo;ll be embarking on a new project to revamp the acquisition, storage, and processing of Mozilla Telemetry data. The &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +21,7 @@
   <link rel="canonical" href="http://mreid-moz.github.io">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Mark @ Mozilla" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -36,9 +36,9 @@
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">My Octopress Blog</a></h1>
+  <h1><a href="/">Mark @ Mozilla</a></h1>
   
-    <h2>A blogging framework for hackers.</h2>
+    <h2>What I'm Up To</h2>
   
 </hgroup>
 
@@ -66,6 +66,59 @@
       <div class="blog-index">
   
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/10/a-new-project/">A New Project</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-10T14:32:00-03:00" pubdate data-updated="true">Jun 10<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Over the coming weeks I&rsquo;ll be embarking on a new project to revamp the acquisition, storage, and processing of <a href="https://wiki.mozilla.org/Telemetry">Mozilla Telemetry</a> data.</p>
+
+<p>The general pipeline for Telemetry data looks like this:</p>
+
+<ol>
+<li>A Firefox user enables Telemetry in their browser</li>
+<li>The browser generates performance data as it is used</li>
+<li>Once a day, the browser submits the performance data to Mozilla via HTTPS</li>
+<li>Data is accepted by <a href="https://wiki.mozilla.org/Telemetry">the server</a> and saved to a queue</li>
+<li>The queue is polled for changes and payloads are saved to persistent storage</li>
+<li>Analysis jobs are run against the persisted data, including daily aggregations</li>
+<li>Results of analysis are visualized in <a href="https://wiki.mozilla.org/Telemetry">Telemetry Dashboards</a></li>
+</ol>
+
+
+<p>My initial focus will be on steps 5 and 6, specifically on improving the persistent storage format to be more space-efficient and to eliminate the need for re-processing to slice the data (by factors like Channel, Version, Day, etc).</p>
+
+<p>I plan to post a link to the code repository here (as soon as there is something useful to share).</p>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>
@@ -77,6 +130,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/06/10/a-new-project/">A New Project</a>
+      </li>
     
   </ul>
 </section>
@@ -91,7 +148,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Your Name -
+  Copyright &copy; 2013 - Mark Reid -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

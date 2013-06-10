@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Mark @ Mozilla]]></title>
-  <link href="http://mreid-moz.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Mozilla | Mark @ Mozilla]]></title>
+  <link href="http://mreid-moz.github.io/blog/categories/mozilla/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
   <updated>2013-06-10T14:47:15-03:00</updated>
   <id>http://mreid-moz.github.io/</id>
