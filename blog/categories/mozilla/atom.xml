@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mozilla | Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/blog/categories/mozilla/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2013-06-10T15:10:39-03:00</updated>
+  <updated>2013-06-26T10:50:34-03:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -12,6 +12,42 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Telemetry Server progress]]></title>
+    <link href="http://mreid-moz.github.io/blog/2013/06/25/telemetry-server-progress/"/>
+    <updated>2013-06-25T16:16:00-03:00</updated>
+    <id>http://mreid-moz.github.io/blog/2013/06/25/telemetry-server-progress</id>
+    <content type="html"><![CDATA[<p>Just a quick post to update on progress with the Telemetry Server project.</p>
+
+<p>First and foremost, the <a href="https://github.com/mreid-moz/telemetry-server" title="Telemetry Server Repository">telemetry-server code is now on github</a>.</p>
+
+<p>As of Friday, there is a basic prototype server up and running on an Amazon EC2 instance.</p>
+
+<p>The prototype is able to accept submissions via HTTP, using URLs without or <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=860846">with dimension components</a>. Submissions are then converted to the new <a href="https://github.com/mreid-moz/telemetry-server/blob/master/StorageFormat.md" title="Storage Format">storage format</a> and saved to disk in the new <a href="https://github.com/mreid-moz/telemetry-server/blob/master/StorageLayout.md" title="On-disk Storage Layout">storage layout</a>.</p>
+
+<p>As part of the conversion process, the histograms in the payload are validated against the correct revision of <code>Histograms.json</code>. This file is automatically fetched from the Mozilla mercurial server, then cached locally. The <code>RevisionCache</code> class encapsulates this logic.</p>
+
+<p>The prototype server in its current form is too monolithic, and needs to be split up such that receiving submissions via HTTP is independent from the remainder of the data pipeline.</p>
+
+<p>The first part, recieving and logging HTTP submissions, is a well-understood problem and there are many existing ways so solve it.  Some options are:</p>
+
+<ul>
+<li>Use the existing <a href="https://github.com/mozilla-metrics/bagheera" title="Bagheera">Bagheera</a> server, and consume messages from Kafka.</li>
+<li>Make more direct use of one of the many message queues (such as Amazon SQS, RabbitMQ, or Kafka)</li>
+<li>Write new code to save raw payloads to a temporary storage area using a similar layout to the long-term <a href="https://github.com/mreid-moz/telemetry-server/blob/master/StorageLayout.md" title="On-disk Storage Layout">storage layout</a>.</li>
+</ul>
+
+
+<p>The second part is already in place and working, with code that should be quite easy to pull out and run separately. One additional piece of functionality that would be nice is to calculate realtime stats before/while data is being persisted.</p>
+
+<p>Other than separating receiving and processing functionality, the next major task will be building a <a href="https://github.com/mreid-moz/telemetry-server/blob/master/MapReduce.md" title="Telemetry MapReduce">MapReduce framework</a> to run on the Telemetry data. Initially, it will not be a full-blown cluster implementation, since reinventing that particular wheel is a huge task, but rather it will run on a single machine using multiple processes to parallelize map and reduce functionality.</p>
+
+<p>One major advantage of the new <a href="https://github.com/mreid-moz/telemetry-server/blob/master/StorageLayout.md" title="On-disk Storage Layout">storage layout</a> is that MapReduce jobs will be able to filter the desired input data on a number of dimensions basically for free. Jobs that only need to look at a small subset of the data should be very efficient.</p>
+
+<p>The first use case of the MapReduce framework is to produce the static data files for the new <a href="https://github.com/tarasglek/telemetry-frontend" title="Telemetry Frontend">telemetry frontend</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[A New Project]]></title>
