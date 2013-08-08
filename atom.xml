@@ -4,7 +4,7 @@
   <title><![CDATA[Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2013-06-26T11:14:52-03:00</updated>
+  <updated>2013-08-08T16:58:57-03:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -12,6 +12,73 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Two Years In]]></title>
+    <link href="http://mreid-moz.github.io/blog/2013/08/08/two-years-on/"/>
+    <updated>2013-08-08T11:47:00-03:00</updated>
+    <id>http://mreid-moz.github.io/blog/2013/08/08/two-years-on</id>
+    <content type="html"><![CDATA[<p>I figured since I missed it last year, I should post something on my
+Mozillaversary!</p>
+
+<p>I started on the Metrics team on August 8th, 2011, and more recently moved over
+to the Performance team. Lots of fun stuff to learn and do, and I&rsquo;m happier
+than ever that I joined Mozilla.</p>
+
+<p>Two orders of business in this post. First, another status update on the
+Telemetry Reboot project.</p>
+
+<p>Things are basically feature-complete on the server now! Very exciting. The
+high-altitude view looks like this:</p>
+
+<p>Data comes in as HTTPS submissions, and is saved to disk in its raw form. These
+files are converted to the new Histogram storage format, compressed, then sent
+to Amazon S3 for permanent storage.</p>
+
+<p>You can run MapReduce jobs on the S3 data (though at the moment there&rsquo;s a lot
+more time spent on data transfer than I would like). If you run a MapReduce job
+on the server node, you can also include up-to-the-minute data that has not yet
+been exported to S3.</p>
+
+<p>Now that the prototype (which reminds me a bit of this description of the
+<a href="http://www.youtube.com/watch?feature=player_detailpage&amp;v=bzkRVzciAZg&amp;t=158">Hideous Creature</a>) is working, the next step is to benchmark things to make
+sure we can handle release-level volumes.</p>
+
+<p>The second order of business is an interesting thing I learned about Python
+File I/O that I thought I&rsquo;d share.</p>
+
+<p>Normal file writes are not atomic, so if you have a situation where multiple
+concurrent processes are appending lines to the same file, it&rsquo;s possible (and
+in fact very likely) to end up with garbled lines. The Telemetry storage format
+requires that each record be on its own line, so this caused real problems
+during testing.</p>
+
+<p>The solution: use <code>io.open(...)</code>.</p>
+
+<p>For example, doing this will produce non-atomic writes:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>fout = open(filename, "a")
+</span><span class='line'>fout.write(some_content)
+</span><span class='line'>fout.close()</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So <code>some_content</code> could actually be written out in multiple disk operations,
+with other writes by other processes in between.</p>
+
+<p>Instead, to achieve atomic writes, you would use something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>with io.open(filename, "a") as fout:
+</span><span class='line'>    fout.write(some_content)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Maybe this is common knowledge for Python folks, but I hope it helps.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Telemetry Server progress]]></title>
