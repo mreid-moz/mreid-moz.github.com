@@ -4,7 +4,7 @@
   <title><![CDATA[Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2013-08-08T16:58:57-03:00</updated>
+  <updated>2013-08-09T16:00:38-03:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -41,8 +41,8 @@ on the server node, you can also include up-to-the-minute data that has not yet
 been exported to S3.</p>
 
 <p>Now that the prototype (which reminds me a bit of this description of the
-<a href="http://www.youtube.com/watch?feature=player_detailpage&amp;v=bzkRVzciAZg&amp;t=158">Hideous Creature</a>) is working, the next step is to benchmark things to make
-sure we can handle release-level volumes.</p>
+<a href="http://www.youtube.com/watch?feature=player_detailpage&amp;v=bzkRVzciAZg&amp;t=158">Hideous Creature</a> <strong>Warning:</strong> strong language) is working, the next step is to
+benchmark things to make sure we can handle release-level volumes.</p>
 
 <p>The second order of business is an interesting thing I learned about Python
 File I/O that I thought I&rsquo;d share.</p>
