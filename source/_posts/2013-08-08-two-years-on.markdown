@@ -29,7 +29,7 @@ on the server node, you can also include up-to-the-minute data that has not yet
 been exported to S3.
 
 Now that the prototype (which reminds me a bit of this description of the
-[Hideous Creature][1] Warning: strong language) is working, the next step is to
+[Hideous Creature][1] **Warning:** strong language) is working, the next step is to
 benchmark things to make sure we can handle release-level volumes.
 
 The second order of business is an interesting thing I learned about Python
