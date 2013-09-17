@@ -9,8 +9,8 @@
   <meta name="author" content="Mark Reid">
 
   
-  <meta name="description" content="I figured since I missed it last year, I should post something on my
-Mozillaversary! I started on the Metrics team on August 8th, 2011, and more &hellip;">
+  <meta name="description" content="Release day is rapidly approaching. We&rsquo;re targeting October 1st for the release
+of the first version of the telemetry reboot. Only two weeks &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +66,68 @@ Mozillaversary! I started on the Metrics team on August 8th, 2011, and more &hel
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/17/the-final-countdown/">The Final Countdown</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-17T14:05:00-03:00" pubdate data-updated="true">Sep 17<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Release day is rapidly approaching. We&rsquo;re targeting October 1st for the release
+of the first version of the telemetry reboot. Only two weeks left &ndash; exciting
+times!</p>
+
+<p>There&rsquo;s now a tracking bug that should list everything that needs to be done
+before things go live: <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=911300">Bug 911300</a>.</p>
+
+<p>The code has changed a fair bit since my last update, the most noticeable
+modification being that the HTTP server is now using node.js instead of a
+python+flask server.</p>
+
+<p>Here is the basic architecture diagram for the system:
+<img src="https://raw.github.com/mreid-moz/telemetry-server/master/docs/data_flow.png" alt="Telemetry Data Flow diagram" /></p>
+
+<p>Data flows into an <code>incoming</code> bucket, which can then be processed separately by
+one or more processing nodes, each of which publishes finalized data to a
+<code>published</code> bucket.</p>
+
+<p>The MapReduce code then reads from the <code>published</code> location for data analysis.</p>
+
+<p>Other changes include updating the <a href="https://github.com/mreid-moz/telemetry-server/blob/master/process_incoming_mp.py">&ldquo;process incoming data&rdquo;</a> code to take
+advantage of multiple processors, thought it appears that python performance is
+still a major bottleneck. Fortunately Mike Trinkala is working on porting the
+conversion code to C++.</p>
+
+<p>Keep an eye on the bug above for up-to-the-minute progress information, or as
+always, feel free to drop by <code>#telemetry</code> on <code>irc.mozilla.org</code>.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -288,6 +350,10 @@ with other writes by other processes in between.</p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/09/17/the-final-countdown/">The Final Countdown</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/08/08/two-years-on/">Two Years In</a>

@@ -5,14 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Blog Archive - Mark @ Mozilla</title>
+  <title>The Final Countdown - Mark @ Mozilla</title>
   <meta name="author" content="Mark Reid">
 
   
-  <meta name="description" content="Blog Archive 2013 The Final Countdown
-Sep 17 2013 posted in Mozilla Two Years In
-Aug 08 2013 posted in Mozilla Telemetry Server progress
-Jun 25 2013 &hellip;">
+  <meta name="description" content="Release day is rapidly approaching. We&rsquo;re targeting October 1st for the release
+of the first version of the telemetry reboot. Only two weeks &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +19,7 @@ Jun 25 2013 &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mreid-moz.github.io/blog/archives">
+  <link rel="canonical" href="http://mreid-moz.github.io/blog/2013/09/17/the-final-countdown">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Mark @ Mozilla" type="application/atom+xml">
@@ -67,77 +65,110 @@ Jun 25 2013 &hellip;">
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Blog Archive</h1>
+    
+      <h1 class="entry-title">The Final Countdown</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-17T14:05:00-03:00" pubdate data-updated="true">Sep 17<span>th</span>, 2013</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives">
 
 
+<div class="entry-content"><p>Release day is rapidly approaching. We&rsquo;re targeting October 1st for the release
+of the first version of the telemetry reboot. Only two weeks left &ndash; exciting
+times!</p>
 
-  
-  <h2>2013</h2>
+<p>There&rsquo;s now a tracking bug that should list everything that needs to be done
+before things go live: <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=911300">Bug 911300</a>.</p>
 
-<article>
-  
-<h1><a href="/blog/2013/09/17/the-final-countdown/">The Final Countdown</a></h1>
-<time datetime="2013-09-17T14:05:00-03:00" pubdate><span class='month'>Sep</span> <span class='day'>17</span> <span class='year'>2013</span></time>
+<p>The code has changed a fair bit since my last update, the most noticeable
+modification being that the HTTP server is now using node.js instead of a
+python+flask server.</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/mozilla/'>Mozilla</a></span>
-</footer>
+<p>Here is the basic architecture diagram for the system:
+<img src="https://raw.github.com/mreid-moz/telemetry-server/master/docs/data_flow.png" alt="Telemetry Data Flow diagram" /></p>
 
+<p>Data flows into an <code>incoming</code> bucket, which can then be processed separately by
+one or more processing nodes, each of which publishes finalized data to a
+<code>published</code> bucket.</p>
 
-</article>
+<p>The MapReduce code then reads from the <code>published</code> location for data analysis.</p>
 
+<p>Other changes include updating the <a href="https://github.com/mreid-moz/telemetry-server/blob/master/process_incoming_mp.py">&ldquo;process incoming data&rdquo;</a> code to take
+advantage of multiple processors, thought it appears that python performance is
+still a major bottleneck. Fortunately Mike Trinkala is working on porting the
+conversion code to C++.</p>
 
-
-<article>
-  
-<h1><a href="/blog/2013/08/08/two-years-on/">Two Years In</a></h1>
-<time datetime="2013-08-08T11:47:00-03:00" pubdate><span class='month'>Aug</span> <span class='day'>08</span> <span class='year'>2013</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/mozilla/'>Mozilla</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2013/06/25/telemetry-server-progress/">Telemetry Server progress</a></h1>
-<time datetime="2013-06-25T16:16:00-03:00" pubdate><span class='month'>Jun</span> <span class='day'>25</span> <span class='year'>2013</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/mozilla/'>Mozilla</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2013/06/10/a-new-project/">A New Project</a></h1>
-<time datetime="2013-06-10T14:32:00-03:00" pubdate><span class='month'>Jun</span> <span class='day'>10</span> <span class='year'>2013</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/mozilla/'>Mozilla</a></span>
-</footer>
-
-
-</article>
-
+<p>Keep an eye on the bug above for up-to-the-minute progress information, or as
+always, feel free to drop by <code>#telemetry</code> on <code>irc.mozilla.org</code>.</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Mark Reid</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-17T14:05:00-03:00" pubdate data-updated="true">Sep 17<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/mozilla/'>Mozilla</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://mreid-moz.github.io/blog/2013/09/17/the-final-countdown/" data-via="reid_write" data-counturl="http://mreid-moz.github.io/blog/2013/09/17/the-final-countdown/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/08/08/two-years-on/" title="Previous Post: Two Years In">&laquo; Two Years In</a>
+      
+      
+    </p>
+  </footer>
 </article>
 
 </div>
