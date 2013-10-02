@@ -2,34 +2,38 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://mreid-moz.github.io/blog/2013/06/10/a-new-project/</loc>
-        <lastmod>2013-06-10T14:39:25-03:00</lastmod>
+        <lastmod>2013-06-10T10:39:25-07:00</lastmod>
     </url>
     <url>
         <loc>http://mreid-moz.github.io/blog/2013/06/25/telemetry-server-progress/</loc>
-        <lastmod>2013-06-26T10:50:33-03:00</lastmod>
+        <lastmod>2013-06-26T06:50:33-07:00</lastmod>
     </url>
     <url>
         <loc>http://mreid-moz.github.io/blog/2013/08/08/two-years-on/</loc>
-        <lastmod>2013-08-09T16:00:37-03:00</lastmod>
+        <lastmod>2013-08-09T12:00:37-07:00</lastmod>
     </url>
     <url>
         <loc>http://mreid-moz.github.io/blog/2013/09/17/the-final-countdown/</loc>
-        <lastmod>2013-09-17T15:24:40-03:00</lastmod>
+        <lastmod>2013-10-02T14:42:55-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://mreid-moz.github.io/blog/2013/10/02/deploying-the-next-telemetry-server/</loc>
+        <lastmod>2013-10-02T15:20:58-07:00</lastmod>
     </url>
     <url>
         <loc>http://mreid-moz.github.io/robots.txt</loc>
-        <lastmod>2013-06-10T14:07:48-03:00</lastmod>
+        <lastmod>2013-06-10T10:07:48-07:00</lastmod>
     </url>
     <url>
         <loc>http://mreid-moz.github.io/</loc>
-        <lastmod>2013-09-17T15:24:40-03:00</lastmod>
+        <lastmod>2013-10-02T15:20:58-07:00</lastmod>
     </url>
     <url>
         <loc>http://mreid-moz.github.io/mozilla.xml</loc>
-        <lastmod>2013-06-10T14:57:30-03:00</lastmod>
+        <lastmod>2013-06-10T10:57:30-07:00</lastmod>
     </url>
     <url>
         <loc>http://mreid-moz.github.io/blog/archives/</loc>
-        <lastmod>2013-09-17T15:24:40-03:00</lastmod>
+        <lastmod>2013-10-02T15:20:58-07:00</lastmod>
     </url>
 </urlset>
