@@ -9,8 +9,8 @@
   <meta name="author" content="Mark Reid">
 
   
-  <meta name="description" content="Yesterday was our target for cutting over to the &ldquo;rebooted&rdquo; telemetry server.
-Despite some last-minute travel (I spent Monday en route &hellip;">
+  <meta name="description" content="The Telemetry Server has been deployed on AWS for just over a month now, so it&rsquo;s
+time for an update. The server code repository has been moved &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,174 @@ Despite some last-minute travel (I spent Monday en route &hellip;">
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/11/06/current-state-of-telemetry-analysis/">Current State of Telemetry Analysis</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-06T10:45:00-04:00" pubdate data-updated="true">Nov 6<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The Telemetry Server has been deployed on AWS for just over a month now, so it&rsquo;s
+time for an update.</p>
+
+<p>The server code repository has been moved into the <a href="https://github.com/mozilla/telemetry-server"><em>Mozilla</em> github group</a>,
+and the <code>mreid-moz</code> repo forwards there, so the change should be seamless.</p>
+
+<p>The Telemetry dashboards have also moved! They are now located at
+<a href="http://telemetry.mozilla.org">telemetry.mozilla.org</a>, nice and easy to remember.</p>
+
+<p>Moving on to more interesting news, anyone with an <code>@mozilla.com</code> email can now
+run their own Telemetry analysis jobs in the cloud. The procedure is still very
+much in alpha/beta state, but if you&rsquo;ve got a question that can be answered
+using Telemetry data, you&rsquo;re in luck.</p>
+
+<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/analysis/debug-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
+instance</a>. These machines (<code>m2.4xlarge</code> in EC2 terms) have read-only
+permission and a fast connection to Telemetry data stored in S3. Each machine
+will be available for 24 hours, and will cost about $40USD to run. If you don&rsquo;t
+need it for the full day, you can kill it early by following the instructions in
+the webapp below.</p>
+
+<p>Here&rsquo;s how it works:</p>
+
+<ul>
+<li>Visit the analysis provisioning dashboard at <a href="http://telemetry-dash.mozilla.org">telemetry-dash.mozilla.org</a>
+and sign in using Persona (with an <code>@mozilla.com</code> email address as mentioned
+above).</li>
+<li>Enter some details. The <code>Server Name</code> field should be a short descriptive
+name, something like &lsquo;mreid chromehangs analysis&rsquo; is good. Upload your
+SSH public key (this allows you to log in to the server once it&rsquo;s started up)</li>
+<li>Click <code>Submit</code>.</li>
+<li>A Ubuntu machine will be started up on Amazon&rsquo;s EC2 infrastructure. Once it
+has started up, you can SSH in and run your analysis job. Reload the webpage
+after a couple of minutes to get the full SSH command you&rsquo;ll use to log in.</li>
+<li><strong>Make sure to download your results</strong> when you&rsquo;re finished! Your analysis
+machine will automatically get killed after 24 hours.</li>
+</ul>
+
+
+<p>Ok, that&rsquo;s all well and good, but what <em>is</em> an analysis job?</p>
+
+<p>The easiest (and probably most familiar to anyone who has worked with Telemetry
+data in the past) is to run a MapReduce job.</p>
+
+<p>This requires a bit of setup on the machine you provisioned above:</p>
+
+<ul>
+<li>Clone the <code>telemetry-server</code> github repository:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install git
+</span><span class='line'>$ git clone https://github.com/mozilla/telemetry-server.git</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Clone and install my fork of the <code>s3funnel</code> project:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/mreid-moz/s3funnel.git
+</span><span class='line'>$ cd s3funnel && sudo python setup.py install</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Set up some working directories:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir /mnt/telemetry
+</span><span class='line'>$ sudo chown ubuntu:ubuntu /mnt/telemetry
+</span><span class='line'>$ mkdir /mnt/telemetry/work</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Create an input filter to match the data you want. Look at the examples at
+<code>mapreduce/examples/*.json</code>. Here is <a href="https://github.com/mozilla/telemetry-server/blob/master/mapreduce/examples/filter_saved_session_Fx_prerelease.json">a reasonably selective one</a>.</li>
+<li>Create a new analysis script, or run one of the example ones:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd ~/telemetry-server
+</span><span class='line'>$ python -m mapreduce.job mapreduce/examples/osdistribution.py \
+</span><span class='line'>   --input-filter /path/to/filter.json \
+</span><span class='line'>   --num-mappers 16
+</span><span class='line'>   --num-reducers 4
+</span><span class='line'>   --data-dir /mnt/telemetry/work \
+</span><span class='line'>   --work-dir /mnt/telemetry/work \
+</span><span class='line'>   --output /mnt/telemetry/my_mapreduce_results.out \
+</span><span class='line'>   --bucket "telemetry-published-v1"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A few notes for successful jobs.</p>
+
+<ul>
+<li>Try to keep the amount of data you&rsquo;re crunching to a minimum while you&rsquo;re
+developing your job. It&rsquo;ll save time, and prevent the system from running out of
+memory. A good start is to process just a single day&rsquo;s <code>nightly</code> data.</li>
+<li>If you do run out of memory, try increasing the number of mappers and reducers.</li>
+<li>After the first run, you can point the &ldquo;&mdash;data-dir&rdquo; argument at
+<code>&lt;work-dir&gt;/cache</code> and add the &ldquo;&mdash;local-only&rdquo; parameter to skip downloading
+files from S3 every time</li>
+<li>Give us a heads-up in #telemetry and we&rsquo;ll tell you about any other caveats.</li>
+</ul>
+
+
+<p>One final note &ndash; the Telemetry MapReduce framework is a simple way to download
+the set of records you are interested in, and <em>do something</em> for each record in
+that data set.</p>
+
+<p>If you don&rsquo;t want to do your analysis with this framework, you can just use it
+to download the data (or even skip it altogether and download data using the AWS
+command-line tools directly). Once the data has been downloaded to the machine,
+you&rsquo;re free to analyze it using whatever other language / tools you&rsquo;re
+comfortable with.</p>
+
+<p>Happy Data Crunching!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/10/02/deploying-the-next-telemetry-server/">Deploying the Next Telemetry Server</a></h1>
     
     
@@ -88,7 +256,7 @@ Despite some last-minute travel (I spent Monday en route &hellip;">
   
 
 
-<time datetime="2013-10-02T14:15:00-07:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2013</time>
+<time datetime="2013-10-02T14:15:00-03:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2013</time>
         
       </p>
     
@@ -169,7 +337,7 @@ S3 storage.</p>
   
 
 
-<time datetime="2013-09-17T14:05:00-07:00" pubdate data-updated="true">Sep 17<span>th</span>, 2013</time>
+<time datetime="2013-09-17T14:05:00-03:00" pubdate data-updated="true">Sep 17<span>th</span>, 2013</time>
         
       </p>
     
@@ -231,7 +399,7 @@ always, feel free to drop by <code>#telemetry</code> on <code>irc.mozilla.org</c
   
 
 
-<time datetime="2013-08-08T11:47:00-07:00" pubdate data-updated="true">Aug 8<span>th</span>, 2013</time>
+<time datetime="2013-08-08T11:47:00-03:00" pubdate data-updated="true">Aug 8<span>th</span>, 2013</time>
         
       </p>
     
@@ -325,7 +493,7 @@ with other writes by other processes in between.</p>
   
 
 
-<time datetime="2013-06-25T16:16:00-07:00" pubdate data-updated="true">Jun 25<span>th</span>, 2013</time>
+<time datetime="2013-06-25T16:16:00-03:00" pubdate data-updated="true">Jun 25<span>th</span>, 2013</time>
         
       </p>
     
@@ -388,7 +556,7 @@ with other writes by other processes in between.</p>
   
 
 
-<time datetime="2013-06-10T14:32:00-07:00" pubdate data-updated="true">Jun 10<span>th</span>, 2013</time>
+<time datetime="2013-06-10T14:32:00-03:00" pubdate data-updated="true">Jun 10<span>th</span>, 2013</time>
         
       </p>
     
@@ -433,6 +601,10 @@ with other writes by other processes in between.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/11/06/current-state-of-telemetry-analysis/">Current State of Telemetry Analysis</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/10/02/deploying-the-next-telemetry-server/">Deploying the Next Telemetry Server</a>
       </li>
     
@@ -446,10 +618,6 @@ with other writes by other processes in between.</p>
     
       <li class="post">
         <a href="/blog/2013/06/25/telemetry-server-progress/">Telemetry Server Progress</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/06/10/a-new-project/">A New Project</a>
       </li>
     
   </ul>
