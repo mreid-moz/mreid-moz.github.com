@@ -192,8 +192,8 @@ data in the past) is to run a MapReduce job.</p>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ cd ~/telemetry-server
 </span><span class='line'>$ python -m mapreduce.job mapreduce/examples/osdistribution.py \
 </span><span class='line'>   --input-filter /path/to/filter.json \
-</span><span class='line'>   --num-mappers 16
-</span><span class='line'>   --num-reducers 4
+</span><span class='line'>   --num-mappers 16 \
+</span><span class='line'>   --num-reducers 4 \
 </span><span class='line'>   --data-dir /mnt/telemetry/work \
 </span><span class='line'>   --work-dir /mnt/telemetry/work \
 </span><span class='line'>   --output /mnt/telemetry/my_mapreduce_results.out \

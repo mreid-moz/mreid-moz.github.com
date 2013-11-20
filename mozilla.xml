@@ -4,7 +4,7 @@
   <title><![CDATA[Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2013-11-06T17:42:06-04:00</updated>
+  <updated>2013-11-19T22:00:43-04:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -118,8 +118,8 @@ data in the past) is to run a MapReduce job.</p>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ cd ~/telemetry-server
 </span><span class='line'>$ python -m mapreduce.job mapreduce/examples/osdistribution.py \
 </span><span class='line'>   --input-filter /path/to/filter.json \
-</span><span class='line'>   --num-mappers 16
-</span><span class='line'>   --num-reducers 4
+</span><span class='line'>   --num-mappers 16 \
+</span><span class='line'>   --num-reducers 4 \
 </span><span class='line'>   --data-dir /mnt/telemetry/work \
 </span><span class='line'>   --work-dir /mnt/telemetry/work \
 </span><span class='line'>   --output /mnt/telemetry/my_mapreduce_results.out \
