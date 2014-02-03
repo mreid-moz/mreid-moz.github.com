@@ -54,11 +54,6 @@ This requires a bit of setup on the machine you provisioned above:
     $ sudo apt-get install git
     $ git clone https://github.com/mozilla/telemetry-server.git
 ```
--  Clone and install my fork of the `s3funnel` project:
-```
-    $ git clone https://github.com/mreid-moz/s3funnel.git
-    $ cd s3funnel && sudo python setup.py install
-```
 -  Set up some working directories:
 ```
     $ sudo mkdir /mnt/telemetry
