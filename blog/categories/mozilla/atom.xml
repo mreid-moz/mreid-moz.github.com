@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mozilla | Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/blog/categories/mozilla/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2013-11-19T22:00:43-04:00</updated>
+  <updated>2014-02-03T14:51:44-04:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -69,11 +69,6 @@ data in the past) is to run a MapReduce job.</p>
 <code>
  $ sudo apt-get install git
  $ git clone https://github.com/mozilla/telemetry-server.git
-</code></li>
-<li>Clone and install my fork of the <code>s3funnel</code> project:
-<code>
- $ git clone https://github.com/mreid-moz/s3funnel.git
- $ cd s3funnel &amp;&amp; sudo python setup.py install
 </code></li>
 <li>Set up some working directories:
 <code>
