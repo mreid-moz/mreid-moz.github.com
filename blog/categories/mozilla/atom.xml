@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mozilla | Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/blog/categories/mozilla/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2013-08-08T16:58:57-03:00</updated>
+  <updated>2014-02-03T14:51:44-04:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -12,6 +12,203 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Current state of Telemetry Analysis]]></title>
+    <link href="http://mreid-moz.github.io/blog/2013/11/06/current-state-of-telemetry-analysis/"/>
+    <updated>2013-11-06T10:45:00-04:00</updated>
+    <id>http://mreid-moz.github.io/blog/2013/11/06/current-state-of-telemetry-analysis</id>
+    <content type="html"><![CDATA[<p>The Telemetry Server has been deployed on AWS for just over a month now, so it&rsquo;s
+time for an update.</p>
+
+<p>The server code repository has been moved into the <a href="https://github.com/mozilla/telemetry-server"><em>Mozilla</em> github group</a>,
+and the <code>mreid-moz</code> repo forwards there, so the change should be seamless.</p>
+
+<p>The Telemetry dashboards have also moved! They are now located at
+<a href="http://telemetry.mozilla.org">telemetry.mozilla.org</a>, nice and easy to remember.</p>
+
+<p>Moving on to more interesting news, anyone with an <code>@mozilla.com</code> email can now
+run their own Telemetry analysis jobs in the cloud. The procedure is still very
+much in alpha/beta state, but if you&rsquo;ve got a question that can be answered
+using Telemetry data, you&rsquo;re in luck.</p>
+
+<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/analysis/debug-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
+instance</a>. These machines (<code>m2.4xlarge</code> in EC2 terms) have read-only
+permission and a fast connection to Telemetry data stored in S3. Each machine
+will be available for 24 hours, and will cost about $40USD to run. If you don&rsquo;t
+need it for the full day, you can kill it early by following the instructions in
+the webapp below.</p>
+
+<p>Here&rsquo;s how it works:</p>
+
+<ul>
+<li>Visit the analysis provisioning dashboard at <a href="http://telemetry-dash.mozilla.org">telemetry-dash.mozilla.org</a>
+and sign in using Persona (with an <code>@mozilla.com</code> email address as mentioned
+above).</li>
+<li>Enter some details. The <code>Server Name</code> field should be a short descriptive
+name, something like &lsquo;mreid chromehangs analysis&rsquo; is good. Upload your
+SSH public key (this allows you to log in to the server once it&rsquo;s started up)</li>
+<li>Click <code>Submit</code>.</li>
+<li>A Ubuntu machine will be started up on Amazon&rsquo;s EC2 infrastructure. Once it
+has started up, you can SSH in and run your analysis job. Reload the webpage
+after a couple of minutes to get the full SSH command you&rsquo;ll use to log in.</li>
+<li><strong>Make sure to download your results</strong> when you&rsquo;re finished! Your analysis
+machine will automatically get killed after 24 hours.</li>
+</ul>
+
+
+<p>Ok, that&rsquo;s all well and good, but what <em>is</em> an analysis job?</p>
+
+<p>The easiest (and probably most familiar to anyone who has worked with Telemetry
+data in the past) is to run a MapReduce job.</p>
+
+<p>This requires a bit of setup on the machine you provisioned above:</p>
+
+<ul>
+<li>Clone the <code>telemetry-server</code> github repository:
+<code>
+ $ sudo apt-get install git
+ $ git clone https://github.com/mozilla/telemetry-server.git
+</code></li>
+<li>Set up some working directories:
+<code>
+ $ sudo mkdir /mnt/telemetry
+ $ sudo chown ubuntu:ubuntu /mnt/telemetry
+ $ mkdir /mnt/telemetry/work
+</code></li>
+<li>Create an input filter to match the data you want. Look at the examples at
+<code>mapreduce/examples/*.json</code>. Here is <a href="https://github.com/mozilla/telemetry-server/blob/master/mapreduce/examples/filter_saved_session_Fx_prerelease.json">a reasonably selective one</a>.</li>
+<li>Create a new analysis script, or run one of the example ones:
+<code>
+ $ cd ~/telemetry-server
+ $ python -m mapreduce.job mapreduce/examples/osdistribution.py \
+    --input-filter /path/to/filter.json \
+    --num-mappers 16 \
+    --num-reducers 4 \
+    --data-dir /mnt/telemetry/work \
+    --work-dir /mnt/telemetry/work \
+    --output /mnt/telemetry/my_mapreduce_results.out \
+    --bucket "telemetry-published-v1"
+</code></li>
+</ul>
+
+
+<p>A few notes for successful jobs.</p>
+
+<ul>
+<li>Try to keep the amount of data you&rsquo;re crunching to a minimum while you&rsquo;re
+developing your job. It&rsquo;ll save time, and prevent the system from running out of
+memory. A good start is to process just a single day&rsquo;s <code>nightly</code> data.</li>
+<li>If you do run out of memory, try increasing the number of mappers and reducers.</li>
+<li>After the first run, you can point the &ldquo;&mdash;data-dir&rdquo; argument at
+<code>&lt;work-dir&gt;/cache</code> and add the &ldquo;&mdash;local-only&rdquo; parameter to skip downloading
+files from S3 every time</li>
+<li>Give us a heads-up in #telemetry and we&rsquo;ll tell you about any other caveats.</li>
+</ul>
+
+
+<p>One final note &ndash; the Telemetry MapReduce framework is a simple way to download
+the set of records you are interested in, and <em>do something</em> for each record in
+that data set.</p>
+
+<p>If you don&rsquo;t want to do your analysis with this framework, you can just use it
+to download the data (or even skip it altogether and download data using the AWS
+command-line tools directly). Once the data has been downloaded to the machine,
+you&rsquo;re free to analyze it using whatever other language / tools you&rsquo;re
+comfortable with.</p>
+
+<p>Happy Data Crunching!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Deploying the next Telemetry Server]]></title>
+    <link href="http://mreid-moz.github.io/blog/2013/10/02/deploying-the-next-telemetry-server/"/>
+    <updated>2013-10-02T14:15:00-03:00</updated>
+    <id>http://mreid-moz.github.io/blog/2013/10/02/deploying-the-next-telemetry-server</id>
+    <content type="html"><![CDATA[<p>Yesterday was our target for cutting over to the &ldquo;rebooted&rdquo; telemetry server.
+Despite some last-minute travel (I spent Monday en route from Nova Scotia to
+San Francisco), I&rsquo;m happy to report that the switch went rather smoothly on
+Tuesday! More details on the required changes can be found in <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=921161">Bug 921161</a>.</p>
+
+<p>Since my last update, there have been a few last-minute code changes to get
+things in ship-shape for deployment. The bulk of those changes were to the
+scripts used to provision machines on Amazon&rsquo;s EC2 infrastructure, but there
+was one more structural change of note.</p>
+
+<p>The logic for processing incoming submissions (that&rsquo;s the &ldquo;validation,
+conversion, and compression&rdquo; part) was previously controlled by a master
+process which would launch a worker node to do the actual processing. Without
+an easy way for masters to co-ordinate, it was difficult to launch extra
+workers in cases where the rate of processing was not keeping up, since each
+master expected its worker to process all available data.</p>
+
+<p>The solution was to switch to using a <a href="http://aws.amazon.com/sqs/">queue</a> to keep track of data
+available to be processed, and having the worker nodes claim data from the
+queue. This results in a nicely decoupled architecture, where starting up more
+workers (or killing off idle ones) is clean and easy.</p>
+
+<p>Anyways, getting back to the main point&hellip; The cutover is complete, and the
+Telemetry submissions are now going to &ldquo;The Cloud!&rdquo;</p>
+
+<p>It turns out that the node.js version of the web server is efficient enough to
+allow us to handle the entire volume of traffic using only a pair of &ldquo;t1.micro&rdquo;
+nodes in EC2 (behind a load balancer).  Pretty slick.</p>
+
+<p>So far, running on AWS has been pretty nice. The Elastic Load Balancers make it
+nearly-trivial to add or remove nodes from the pool, and include useful (if
+limited) monitoring. On the HTTP-serving nodes themselves, we have some more
+detailed and application-specific monitoring using <a href="http://hekad.readthedocs.org/en/latest/">Heka</a>. The <a href="http://boto.s3.amazonaws.com/index.html">boto</a>
+library makes it very easy to provision new nodes using python.</p>
+
+<p>Now that the Telemetry Server is out in the wild, the next step is to get the
+<a href="http://telemetry-dash.mozilla.org">new Dashboard</a> playing nicely with the new data source. Jonas Finnemann
+Jensen is working on that.</p>
+
+<p>There&rsquo;s still more work to do once the dashboard integration is complete,
+including finishing up the C++ port of the &ldquo;process incoming&rdquo; code (which will
+hopefully provide a large speedup compared to the current python
+implementation), migrating the provisioning over to Amazon Cloud Formation,
+creating a frontend for managing/running Telemetry MapReduce jobs, and
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=922745">exporting the historic data</a> from the previous Hadoop backend into the new
+S3 storage.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[The Final Countdown]]></title>
+    <link href="http://mreid-moz.github.io/blog/2013/09/17/the-final-countdown/"/>
+    <updated>2013-09-17T14:05:00-03:00</updated>
+    <id>http://mreid-moz.github.io/blog/2013/09/17/the-final-countdown</id>
+    <content type="html"><![CDATA[<p>Release day is rapidly approaching. We&rsquo;re targeting October 1st for the release
+of the first version of the telemetry reboot. Only two weeks left &ndash; exciting
+times!</p>
+
+<p>There&rsquo;s now a tracking bug that should list everything that needs to be done
+before things go live: <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=911300">Bug 911300</a>.</p>
+
+<p>The code has changed a fair bit since my last update, the most noticeable
+modification being that the HTTP server is now using node.js instead of a
+python+flask server.</p>
+
+<p>Here is the basic architecture diagram for the system:
+<img src="https://raw.github.com/mreid-moz/telemetry-server/master/docs/data_flow.png" alt="Telemetry Data Flow diagram" /></p>
+
+<p>Data flows into an <code>incoming</code> bucket, which can then be processed separately by
+one or more processing nodes, each of which publishes finalized data to a
+<code>published</code> bucket.</p>
+
+<p>The MapReduce code then reads from the <code>published</code> location for data analysis.</p>
+
+<p>Other changes include updating the <a href="https://github.com/mreid-moz/telemetry-server/blob/master/process_incoming_mp.py">&ldquo;process incoming data&rdquo;</a> code to take
+advantage of multiple processors, though it appears that python performance is
+still a major bottleneck. Fortunately Mike Trinkala is working on porting the
+conversion code to C++.</p>
+
+<p>Keep an eye on the bug above for up-to-the-minute progress information, or as
+always, feel free to drop by <code>#telemetry</code> on <code>irc.mozilla.org</code>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Two Years In]]></title>
@@ -41,8 +238,8 @@ on the server node, you can also include up-to-the-minute data that has not yet
 been exported to S3.</p>
 
 <p>Now that the prototype (which reminds me a bit of this description of the
-<a href="http://www.youtube.com/watch?feature=player_detailpage&amp;v=bzkRVzciAZg&amp;t=158">Hideous Creature</a>) is working, the next step is to benchmark things to make
-sure we can handle release-level volumes.</p>
+<a href="http://www.youtube.com/watch?feature=player_detailpage&amp;v=bzkRVzciAZg&amp;t=158">Hideous Creature</a> <strong>Warning:</strong> strong language) is working, the next step is to
+benchmark things to make sure we can handle release-level volumes.</p>
 
 <p>The second order of business is an interesting thing I learned about Python
 File I/O that I thought I&rsquo;d share.</p>
@@ -111,32 +308,6 @@ with io.open(filename, &ldquo;a&rdquo;) as fout:</p>
 <p>One major advantage of the new <a href="https://github.com/mreid-moz/telemetry-server/blob/master/StorageLayout.md" title="On-disk Storage Layout">storage layout</a> is that MapReduce jobs will be able to filter the desired input data on a number of dimensions basically for free. Jobs that only need to look at a small subset of the data should be very efficient.</p>
 
 <p>The first use case of the MapReduce framework is to produce the static data files for the new <a href="https://github.com/tarasglek/telemetry-frontend" title="Telemetry Frontend">telemetry frontend</a>.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A New Project]]></title>
-    <link href="http://mreid-moz.github.io/blog/2013/06/10/a-new-project/"/>
-    <updated>2013-06-10T14:32:00-03:00</updated>
-    <id>http://mreid-moz.github.io/blog/2013/06/10/a-new-project</id>
-    <content type="html"><![CDATA[<p>Over the coming weeks I&rsquo;ll be embarking on a new project to revamp the acquisition, storage, and processing of <a href="https://wiki.mozilla.org/Telemetry">Mozilla Telemetry</a> data.</p>
-
-<p>The general pipeline for Telemetry data looks like this:</p>
-
-<ol>
-<li>A Firefox user enables Telemetry in their browser</li>
-<li>The browser generates performance data as it is used</li>
-<li>Once a day, the browser submits the performance data to Mozilla via HTTPS</li>
-<li>Data is accepted by <a href="https://wiki.mozilla.org/Telemetry">the server</a> and saved to a queue</li>
-<li>The queue is polled for changes and payloads are saved to persistent storage</li>
-<li>Analysis jobs are run against the persisted data, including daily aggregations</li>
-<li>Results of analysis are visualized in <a href="https://wiki.mozilla.org/Telemetry">Telemetry Dashboards</a></li>
-</ol>
-
-
-<p>My initial focus will be on steps 5 and 6, specifically on improving the persistent storage format to be more space-efficient and to eliminate the need for re-processing to slice the data (by factors like Channel, Version, Day, etc).</p>
-
-<p>I plan to post a link to the code repository here (as soon as there is something useful to share).</p>
 ]]></content>
   </entry>
   

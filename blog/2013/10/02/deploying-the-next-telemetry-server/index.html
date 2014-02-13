@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Deploying the next Telemetry Server - Mark @ Mozilla</title>
+  <meta name="author" content="Mark Reid">
+
+  
+  <meta name="description" content="Yesterday was our target for cutting over to the &ldquo;rebooted&rdquo; telemetry server.
+Despite some last-minute travel (I spent Monday en route &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://mreid-moz.github.io/blog/2013/10/02/deploying-the-next-telemetry-server">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Mark @ Mozilla" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Mark @ Mozilla</a></h1>
+  
+    <h2>Performance team</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:mreid-moz.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Deploying the Next Telemetry Server</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-02T14:15:00-03:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Yesterday was our target for cutting over to the &ldquo;rebooted&rdquo; telemetry server.
+Despite some last-minute travel (I spent Monday en route from Nova Scotia to
+San Francisco), I&rsquo;m happy to report that the switch went rather smoothly on
+Tuesday! More details on the required changes can be found in <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=921161">Bug 921161</a>.</p>
+
+<p>Since my last update, there have been a few last-minute code changes to get
+things in ship-shape for deployment. The bulk of those changes were to the
+scripts used to provision machines on Amazon&rsquo;s EC2 infrastructure, but there
+was one more structural change of note.</p>
+
+<p>The logic for processing incoming submissions (that&rsquo;s the &ldquo;validation,
+conversion, and compression&rdquo; part) was previously controlled by a master
+process which would launch a worker node to do the actual processing. Without
+an easy way for masters to co-ordinate, it was difficult to launch extra
+workers in cases where the rate of processing was not keeping up, since each
+master expected its worker to process all available data.</p>
+
+<p>The solution was to switch to using a <a href="http://aws.amazon.com/sqs/">queue</a> to keep track of data
+available to be processed, and having the worker nodes claim data from the
+queue. This results in a nicely decoupled architecture, where starting up more
+workers (or killing off idle ones) is clean and easy.</p>
+
+<p>Anyways, getting back to the main point&hellip; The cutover is complete, and the
+Telemetry submissions are now going to &ldquo;The Cloud!&rdquo;</p>
+
+<p>It turns out that the node.js version of the web server is efficient enough to
+allow us to handle the entire volume of traffic using only a pair of &ldquo;t1.micro&rdquo;
+nodes in EC2 (behind a load balancer).  Pretty slick.</p>
+
+<p>So far, running on AWS has been pretty nice. The Elastic Load Balancers make it
+nearly-trivial to add or remove nodes from the pool, and include useful (if
+limited) monitoring. On the HTTP-serving nodes themselves, we have some more
+detailed and application-specific monitoring using <a href="http://hekad.readthedocs.org/en/latest/">Heka</a>. The <a href="http://boto.s3.amazonaws.com/index.html">boto</a>
+library makes it very easy to provision new nodes using python.</p>
+
+<p>Now that the Telemetry Server is out in the wild, the next step is to get the
+<a href="http://telemetry-dash.mozilla.org">new Dashboard</a> playing nicely with the new data source. Jonas Finnemann
+Jensen is working on that.</p>
+
+<p>There&rsquo;s still more work to do once the dashboard integration is complete,
+including finishing up the C++ port of the &ldquo;process incoming&rdquo; code (which will
+hopefully provide a large speedup compared to the current python
+implementation), migrating the provisioning over to Amazon Cloud Formation,
+creating a frontend for managing/running Telemetry MapReduce jobs, and
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=922745">exporting the historic data</a> from the previous Hadoop backend into the new
+S3 storage.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Mark Reid</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-02T14:15:00-03:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/mozilla/'>Mozilla</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://mreid-moz.github.io/blog/2013/10/02/deploying-the-next-telemetry-server/" data-via="reid_write" data-counturl="http://mreid-moz.github.io/blog/2013/10/02/deploying-the-next-telemetry-server/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/09/17/the-final-countdown/" title="Previous Post: The Final Countdown">&laquo; The Final Countdown</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/11/06/current-state-of-telemetry-analysis/" title="Next Post: Current state of Telemetry Analysis">Current state of Telemetry Analysis &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/06/current-state-of-telemetry-analysis/">Current State of Telemetry Analysis</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/02/deploying-the-next-telemetry-server/">Deploying the Next Telemetry Server</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/17/the-final-countdown/">The Final Countdown</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/08/two-years-on/">Two Years In</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/06/25/telemetry-server-progress/">Telemetry Server Progress</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Mark Reid -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
