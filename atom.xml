@@ -4,7 +4,7 @@
   <title><![CDATA[Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2014-02-03T14:51:44-04:00</updated>
+  <updated>2014-02-14T14:39:11-04:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -12,6 +12,57 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Recent Telemetry Data Outages]]></title>
+    <link href="http://mreid-moz.github.io/blog/2014/02/13/recent-telemetry-data-outages/"/>
+    <updated>2014-02-13T16:55:00-04:00</updated>
+    <id>http://mreid-moz.github.io/blog/2014/02/13/recent-telemetry-data-outages</id>
+    <content type="html"><![CDATA[<p>There have been a few data outages in Telemetry recently, so I figured some followup and explanation are in order.</p>
+
+<p>Here&rsquo;s a graph of the submission rate from the <code>nightly</code> channel (where most of the action has taken place) over the past 60 days:</p>
+
+<p><img src="images/telemetry_nightly20140213.png" title="Nightly submission rate for the past 60 days" alt="Heka Graph of nightly submissions for the past 60 days" /></p>
+
+<p>The x-axis is time, and the y-axis is the number of submissions per hour.</p>
+
+<p>Points <strong>A</strong> (December 17) and <strong>B</strong> (January 8) are false alarms, and were just cases where the stats logging itself got interrupted, and so don&rsquo;t represent data outages.</p>
+
+<p>Point <strong>C</strong> (January 16) is where it starts to get interesting. In that case, Firefox nightly builds stopped submitting Telemetry data due to a change in event handling when the Telemetry client-side code was <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=913070" title="Bug 913070 - Move TelemetryPing to a .jsm">moved from a .js file to a .jsm module</a>.  The resolution is described in <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=962153" title="Bug 962153 - Drop in telemetry submissions since 2014-01-15">Bug 962153</a>.  This outage resulted in missing data for nightly builds from January 16th through to January 22nd.</p>
+
+<p>As shown on the above graph, the submission rate dropped noticeably, but not anywhere close to zero.  This is because not everyone on the nightly channel updates to the latest nightly as soon as it&rsquo;s available, so an interesting side-effect of this bug is that we can see a glimpse of the rate at which nightly users update to new builds.  In short, it looks like a large portion of users update right away, with a long tail of users waiting several days to update. The effect is apparent again as the submission rate recovers starting on January 22nd.</p>
+
+<p>The second problem with submissions came at point <strong>D</strong> (February 1) as a result of changing the client Telemetry code to <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=839794" title="Bug 839794 - Use OS.File in Telemetry">use OS.File for saving submissions</a> to disk on shutdown. This resulted in a more gradual decrease in submissions, since the <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=967203" title="Bug 967203 - Telemetry doesn't save pending pings on shutdown">&ldquo;saved-session&rdquo; submissions were missing</a>, but &ldquo;idle-daily&rdquo; submissions were still being sent. This outage resulted in partial data loss for nightly builds from February 1st through to February 7th.</p>
+
+<p>Both of these problems have been limited to the <code>nightly</code> channel, so the actual volume of submissions that were lost is relatively low. In fact, if you compare the above graph to the graph for all channels:</p>
+
+<p><img src="images/telemetry_all20140214.png" title="Overall submission rate for the past 60 days" alt="Heka Graph of all submissions for the past 60 days" /></p>
+
+<p>The anomalies on January 16th and February 1st are not even noticeable within the usual weekly pattern of overall Telemetry submissions (we normally observe a sort of &ldquo;double peak&rdquo; each day, with weekends showing about 15-20% fewer submissions). This makes sense given that the <code>release</code> channel comprises the vast majority of submissions.</p>
+
+<p>The above graphs are all screenshots of our <a href="http://hekad.readthedocs.org" title="Heka">Heka</a> aggregator instance. You can look at a <a href="http://people.mozilla.org/~mreid/telemetry/logs.aggregate.html" title="Aggregate Telemetry submission stats">live view of the submission stats</a> and explore for yourself. Follow the links at the top of the iframes to dig further into what&rsquo;s available.</p>
+
+<p>There was a third data outage recently, but it cropped up in the server&rsquo;s data validation / conversion processing so it doesn&rsquo;t appear as an anomaly on the submission graphs. On February 4th, the <code>revision</code> field for many submissions started being rejected as invalid. The server code was expecting a <code>revision</code> URL of the form <code>http://hg.mozilla.org/...</code>, but was getting URLs starting with <code>https://...</code> and thus rejecting them. Since <code>revision</code> is required in order to determine the correct version of <code>Histograms.json</code> to use for validating the rest of the payload, these submissions were simply discarded. The change from <code>http</code> to <code>https</code> came from <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=960571" title="Bug 960571 - switch to https for build/test downloads and hg">a mostly-unrelated change to the Firefox build infrastructure</a>. This outage affected both nightly and aurora, and caused the loss of submissions from builds between February 4th and when the <a href="https://github.com/mozilla/telemetry-server/commit/1b8c1fb963d87dcccb9849f03a3b10587938e6ab" title="Add support for https urls in 'revision'">server-side fix</a> landed on Februrary 12th.</p>
+
+<hr />
+
+<p>So with all these outages happening so close together, what are we doing to fix it?</p>
+
+<p>Going forward, we would like to be able to completely avoid problems like the overly-eager rejection of payloads during validation, and in cases where we can&rsquo;t avoid problems, we want to detect and fix them as early as possible.</p>
+
+<p>In the specific case of the <code>revision</code> field, we are adding <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=972324" title="Bug 972324 - Test for changes of the revision value in payloads">a test that will fail if the URL prefix changes</a>.</p>
+
+<p>In the case where the submission rate drops, we are adding <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=962811" title="Bug 962811 - Automatic e-mail notifications of Telemetry submission rate spikes &amp; drops">automatic email notifications</a> which will allow us to act quickly to fix the problem. The basic functionality is already in place thanks to Mike Trinkala, though the anomaly detection algorithm needs some tweaking to trigger on things like a gradual decline in submissions over time.</p>
+
+<p>Similarly, if the <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=972887" title="Bug 972887 - Log and monitor server-side validation statistics">&ldquo;invalid submission&rdquo; rate</a> goes up in the server&rsquo;s validation process, we want to add <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=972889" title="Bug 972889 - Automatic e-mail notifications of Telemetry validation error rate spikes &amp; drops">automatic alerts</a> there as well.</p>
+
+<p>With these improvements in place, we should see far fewer data outages in Q2 and beyond.</p>
+
+<h3>Last minute update</h3>
+
+<p>While poking around at various graphs to document this post, I noticed that <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=967203" title="Bug 967203 - Telemetry doesn't save pending pings on shutdown">Bug 967203</a> was still affecting <code>aurora</code>, so the fix has been uplifted.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Current state of Telemetry Analysis]]></title>
