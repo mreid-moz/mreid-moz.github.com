@@ -4,7 +4,7 @@
   <title><![CDATA[Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2014-02-14T14:39:11-04:00</updated>
+  <updated>2014-03-14T15:32:18-03:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -83,7 +83,7 @@ run their own Telemetry analysis jobs in the cloud. The procedure is still very
 much in alpha/beta state, but if you&rsquo;ve got a question that can be answered
 using Telemetry data, you&rsquo;re in luck.</p>
 
-<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/analysis/debug-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
+<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/http/analysis-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
 instance</a>. These machines (<code>m2.4xlarge</code> in EC2 terms) have read-only
 permission and a fast connection to Telemetry data stored in S3. Each machine
 will be available for 24 hours, and will cost about $40USD to run. If you don&rsquo;t

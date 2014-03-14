@@ -106,7 +106,7 @@ run their own Telemetry analysis jobs in the cloud. The procedure is still very
 much in alpha/beta state, but if you&rsquo;ve got a question that can be answered
 using Telemetry data, you&rsquo;re in luck.</p>
 
-<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/analysis/debug-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
+<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/http/analysis-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
 instance</a>. These machines (<code>m2.4xlarge</code> in EC2 terms) have read-only
 permission and a fast connection to Telemetry data stored in S3. Each machine
 will be available for 24 hours, and will cost about $40USD to run. If you don&rsquo;t
@@ -277,6 +277,10 @@ comfortable with.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/14/scheduling-telemetry-analysis/">Scheduling Telemetry Analysis</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/13/recent-telemetry-data-outages/">Recent Telemetry Data Outages</a>
       </li>
     
@@ -290,10 +294,6 @@ comfortable with.</p>
     
       <li class="post">
         <a href="/blog/2013/09/17/the-final-countdown/">The Final Countdown</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/08/08/two-years-on/">Two Years In</a>
       </li>
     
   </ul>

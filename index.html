@@ -9,7 +9,9 @@
   <meta name="author" content="Mark Reid">
 
   
-  <meta name="description" content="There have been a few data outages in Telemetry recently, so I figured some followup and explanation are in order. Here&rsquo;s a graph of the &hellip;">
+  <meta name="description" content="In a previous post, I described how to run an ad-hoc analysis on the
+Telemetry data. There is often a need to re-run an analysis on an ongoing
+basis &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -65,6 +67,178 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/03/14/scheduling-telemetry-analysis/">Scheduling Telemetry Analysis</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-14T14:57:00-03:00" pubdate data-updated="true">Mar 14<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In a <a href="http://mreid-moz.github.io/blog/2013/11/06/current-state-of-telemetry-analysis/">previous post</a>, I described how to run an ad-hoc analysis on the
+Telemetry data. There is often a need to re-run an analysis on an ongoing
+basis, whether it be for <a href="http://telemetry.mozilla.org">powering dashboards</a> or just to see how the
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=965707">data changes over time</a>.</p>
+
+<p>We&rsquo;ve rolled out a new version of the
+<a href="http://telemetry-dash.mozilla.org/">Self-Serve Telemetry Data Analysis Dashboard</a> with an improved interface
+and some new features.</p>
+
+<p>Now you can schedule analysis jobs to run on a daily, weekly, or monthly basis
+and publish results to a public-facing Amazon S3 bucket.</p>
+
+<h2>Typical Scheduling</h2>
+
+<p>Here&rsquo;s how I expect that the analysis-scheduling capability will normally be
+used:</p>
+
+<ol>
+<li>Log in to <a href="http://telemetry-dash.mozilla.org/">telemetry-dash.mozilla.org</a></li>
+<li>Launch an analysis worker in the cloud</li>
+<li>Develop and test your analysis code</li>
+<li>Create a wrapper script to:
+
+<ul>
+<li>Do any required setup (install python packages, etc)</li>
+<li>Run the analysis</li>
+<li>Put output files in a given directory relative to the script itself</li>
+</ul>
+</li>
+<li>Download and save your code from the worker instance</li>
+<li>Create a tarball containing all the required code</li>
+<li>Test your wrapper script:
+
+<ul>
+<li>Launch a fresh analysis worker</li>
+<li>Run your wrapper script</li>
+<li>Verify output looks good</li>
+</ul>
+</li>
+<li>Head back to <a href="http://telemetry-dash.mozilla.org/">the analysis dashboard</a>, and schedule your analysis to run
+as needed</li>
+</ol>
+
+
+<h2>Dissecting the &ldquo;Schedule a Job&rdquo; form</h2>
+
+<ul>
+<li><strong>Job Name</strong> is a unique identifier for your job. It should be a short,
+descriptive string. Think &ldquo;what would I call this job in a code repo or
+hostname?&rdquo; For example, the job that runs the data export for the
+<a href="http://telemetry.mozilla.org/slowsql">SlowSQL dashboard</a> is called <code>slowsql</code>. You can add your username to
+create a unique job name if you like (ie. <code>mreid-slowsql</code>).</li>
+<li><strong>Code Tarball</strong> is the archive containing all the files needed to run your
+analysis. The machine on which the job runs is a bare-bones Ubuntu machine
+with a few common dependencies installed (git, xz-utils, etc), and it is up
+to your code to install anything extra that might be needed.</li>
+<li><strong>Execution Commandline</strong> is what will be invoked on the launched server. It
+is the entry point to your job. You can specify an arbitrary Bash command.</li>
+<li><strong>Output Directory</strong> is the location of results to be published to S3.
+Again, these results will be publicly visible.</li>
+<li><strong>Schedule Frequency</strong> is how often the job will run.</li>
+<li><strong>Day of Week</strong> for jobs running with <code>daily</code> frequency.</li>
+<li><strong>Day of Month</strong> for jobs running with <code>monthly</code> frequency.</li>
+<li><strong>Time of Day (UTC)</strong> is when the job will run. Due to the distributed
+nature of the Telemetry <a href="https://raw.github.com/mreid-moz/telemetry-server/master/docs/data_flow.png">data processing pipeline</a>, there may be some
+delay before the previous day&rsquo;s data is fully available. So if your job is
+processing data from &ldquo;yesterday&rdquo;, I recommend using the default vaulue of
+Noon UTC.</li>
+<li><strong>Job Timeout</strong> is the failsafe for jobs that don&rsquo;t terminate on their own.
+If the job does not complete within the specified number of minutes, it will
+be forcibly terminated. This avoids having stalled jobs run forever (racking
+up our AWS bill the whole time).</li>
+</ul>
+
+
+<h2>Example: SlowSQL</h2>
+
+<p>A concrete example of an analysis job that runs using the same framework is the
+<a href="https://github.com/mozilla/telemetry-server/tree/master/mapreduce/slowsql">SlowSQL export</a>. The <code>package.sh</code> script creates the code tarball for this
+job, and the <code>run.sh</code> script actually runs the analysis on a daily basis.</p>
+
+<p>In order to schedule the SlowSQL job using the above form, first I would run
+<code>package.sh</code> to create the code tarball, then I would fill the form as follows:</p>
+
+<ul>
+<li><strong>Job Name</strong>: <code>slowsql</code></li>
+<li><strong>Code Tarball</strong>: select <code>slowsql-0.3.tar.gz</code></li>
+<li><strong>Execution Commandline</strong>: <code>./run.sh</code></li>
+<li><strong>Output Directory</strong>: <code>output</code> &ndash; this directory is created in <code>run.sh</code> and
+data is moved here after the job finishes</li>
+<li><strong>Schedule Frequency</strong>: <code>Daily</code></li>
+<li><strong>Day of Week</strong>: leave as default</li>
+<li><strong>Day of Month</strong>: leave as default</li>
+<li><strong>Time of Day (UTC)</strong>: leave as default</li>
+<li><strong>Job Timeout</strong>: <code>175</code> &ndash; typical runs during development took around 2 hours,
+so we wait just under 3 hours</li>
+</ul>
+
+
+<p>The <a href="https://s3-us-west-2.amazonaws.com/telemetry-public-analysis/slowsql/data/slowsql20140308.csv.gz">daily data files</a> are then published in S3 and can be used from the
+Telemetry SlowSQL Dashboard.</p>
+
+<h2>Beyond Typical Scheduling</h2>
+
+<p>The job runner doesn&rsquo;t care if your code uses the <a href="https://raw.github.com/mreid-moz/telemetry-server/master/docs/data_flow.png">python MapReduce</a>
+framework or your own hand-tuned assembly code. It is just a generalized way to
+launch a machine to do some processing on a scheduled basis.</p>
+
+<p>So you&rsquo;re free to implement your analysis using whatever tools best suit the
+job at hand.</p>
+
+<p>The sky is the limit, as long as the code can be packaged up as a tarball and
+executed on a Ubuntu box.</p>
+
+<p>The pseudo-code for the general job logic is</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>fetch <span class="nv">$code_tarball</span>
+</span><span class='line'>tar xzvf <span class="nv">$code_tarball</span>
+</span><span class='line'><span class="sb">`</span><span class="nv">$execution_commandline</span><span class="sb">`</span>
+</span><span class='line'><span class="nb">cd</span> <span class="nv">$output_directory</span>
+</span><span class='line'>publish --recursive ./ s3://public/<span class="nv">$job_name</span>/data/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Published Output</h2>
+
+<p>One final reminder: Keep in mind that the results of the analysis will be made
+<strong>publicly available</strong> on Amazon S3, so be absolutely sure that the output from
+your job does not include any sensitive data.</p>
+
+<p>Aggregates of the raw data are fine, but it is very important not to output the
+raw data.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -186,7 +360,7 @@ run their own Telemetry analysis jobs in the cloud. The procedure is still very
 much in alpha/beta state, but if you&rsquo;ve got a question that can be answered
 using Telemetry data, you&rsquo;re in luck.</p>
 
-<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/analysis/debug-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
+<p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/http/analysis-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
 instance</a>. These machines (<code>m2.4xlarge</code> in EC2 terms) have read-only
 permission and a fast connection to Telemetry data stored in S3. Each machine
 will be available for 24 hours, and will cost about $40USD to run. If you don&rsquo;t
@@ -667,6 +841,10 @@ with other writes by other processes in between.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/14/scheduling-telemetry-analysis/">Scheduling Telemetry Analysis</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/13/recent-telemetry-data-outages/">Recent Telemetry Data Outages</a>
       </li>
     
@@ -680,10 +858,6 @@ with other writes by other processes in between.</p>
     
       <li class="post">
         <a href="/blog/2013/09/17/the-final-countdown/">The Final Countdown</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/08/08/two-years-on/">Two Years In</a>
       </li>
     
   </ul>
