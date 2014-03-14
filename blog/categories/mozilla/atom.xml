@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mozilla | Mark @ Mozilla]]></title>
   <link href="http://mreid-moz.github.io/blog/categories/mozilla/atom.xml" rel="self"/>
   <link href="http://mreid-moz.github.io/"/>
-  <updated>2014-03-14T15:32:18-03:00</updated>
+  <updated>2014-03-14T17:34:46-03:00</updated>
   <id>http://mreid-moz.github.io/</id>
   <author>
     <name><![CDATA[Mark Reid]]></name>
@@ -12,6 +12,145 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Scheduling Telemetry Analysis]]></title>
+    <link href="http://mreid-moz.github.io/blog/2014/03/14/scheduling-telemetry-analysis/"/>
+    <updated>2014-03-14T14:57:00-03:00</updated>
+    <id>http://mreid-moz.github.io/blog/2014/03/14/scheduling-telemetry-analysis</id>
+    <content type="html"><![CDATA[<p>In a <a href="http://mreid-moz.github.io/blog/2013/11/06/current-state-of-telemetry-analysis/">previous post</a>, I described how to run an ad-hoc analysis on the
+Telemetry data. There is often a need to re-run an analysis on an ongoing
+basis, whether it be for <a href="http://telemetry.mozilla.org">powering dashboards</a> or just to see how the
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=965707">data changes over time</a>.</p>
+
+<p>We&rsquo;ve rolled out a new version of the
+<a href="http://telemetry-dash.mozilla.org/">Self-Serve Telemetry Data Analysis Dashboard</a> with an improved interface
+and some new features.</p>
+
+<p>Now you can schedule analysis jobs to run on a daily, weekly, or monthly basis
+and publish results to a public-facing Amazon S3 bucket.</p>
+
+<h2>Typical Scheduling</h2>
+
+<p>Here&rsquo;s how I expect that the analysis-scheduling capability will normally be
+used:</p>
+
+<ol>
+<li>Log in to <a href="http://telemetry-dash.mozilla.org/">telemetry-dash.mozilla.org</a></li>
+<li>Launch an analysis worker in the cloud</li>
+<li>Develop and test your analysis code</li>
+<li>Create a wrapper script to:
+
+<ul>
+<li>Do any required setup (install python packages, etc)</li>
+<li>Run the analysis</li>
+<li>Put output files in a given directory relative to the script itself</li>
+</ul>
+</li>
+<li>Download and save your code from the worker instance</li>
+<li>Create a tarball containing all the required code</li>
+<li>Test your wrapper script:
+
+<ul>
+<li>Launch a fresh analysis worker</li>
+<li>Run your wrapper script</li>
+<li>Verify output looks good</li>
+</ul>
+</li>
+<li>Head back to <a href="http://telemetry-dash.mozilla.org/">the analysis dashboard</a>, and schedule your analysis to run
+as needed</li>
+</ol>
+
+
+<h2>Dissecting the &ldquo;Schedule a Job&rdquo; form</h2>
+
+<ul>
+<li><strong>Job Name</strong> is a unique identifier for your job. It should be a short,
+descriptive string. Think &ldquo;what would I call this job in a code repo or
+hostname?&rdquo; For example, the job that runs the data export for the
+<a href="http://telemetry.mozilla.org/slowsql">SlowSQL dashboard</a> is called <code>slowsql</code>. You can add your username to
+create a unique job name if you like (ie. <code>mreid-slowsql</code>).</li>
+<li><strong>Code Tarball</strong> is the archive containing all the files needed to run your
+analysis. The machine on which the job runs is a bare-bones Ubuntu machine
+with a few common dependencies installed (git, xz-utils, etc), and it is up
+to your code to install anything extra that might be needed.</li>
+<li><strong>Execution Commandline</strong> is what will be invoked on the launched server. It
+is the entry point to your job. You can specify an arbitrary Bash command.</li>
+<li><strong>Output Directory</strong> is the location of results to be published to S3.
+Again, these results will be publicly visible.</li>
+<li><strong>Schedule Frequency</strong> is how often the job will run.</li>
+<li><strong>Day of Week</strong> for jobs running with <code>daily</code> frequency.</li>
+<li><strong>Day of Month</strong> for jobs running with <code>monthly</code> frequency.</li>
+<li><strong>Time of Day (UTC)</strong> is when the job will run. Due to the distributed
+nature of the Telemetry <a href="https://raw.github.com/mreid-moz/telemetry-server/master/docs/data_flow.png">data processing pipeline</a>, there may be some
+delay before the previous day&rsquo;s data is fully available. So if your job is
+processing data from &ldquo;yesterday&rdquo;, I recommend using the default vaulue of
+Noon UTC.</li>
+<li><strong>Job Timeout</strong> is the failsafe for jobs that don&rsquo;t terminate on their own.
+If the job does not complete within the specified number of minutes, it will
+be forcibly terminated. This avoids having stalled jobs run forever (racking
+up our AWS bill the whole time).</li>
+</ul>
+
+
+<h2>Example: SlowSQL</h2>
+
+<p>A concrete example of an analysis job that runs using the same framework is the
+<a href="https://github.com/mozilla/telemetry-server/tree/master/mapreduce/slowsql">SlowSQL export</a>. The <code>package.sh</code> script creates the code tarball for this
+job, and the <code>run.sh</code> script actually runs the analysis on a daily basis.</p>
+
+<p>In order to schedule the SlowSQL job using the above form, first I would run
+<code>package.sh</code> to create the code tarball, then I would fill the form as follows:</p>
+
+<ul>
+<li><strong>Job Name</strong>: <code>slowsql</code></li>
+<li><strong>Code Tarball</strong>: select <code>slowsql-0.3.tar.gz</code></li>
+<li><strong>Execution Commandline</strong>: <code>./run.sh</code></li>
+<li><strong>Output Directory</strong>: <code>output</code> &ndash; this directory is created in <code>run.sh</code> and
+data is moved here after the job finishes</li>
+<li><strong>Schedule Frequency</strong>: <code>Daily</code></li>
+<li><strong>Day of Week</strong>: leave as default</li>
+<li><strong>Day of Month</strong>: leave as default</li>
+<li><strong>Time of Day (UTC)</strong>: leave as default</li>
+<li><strong>Job Timeout</strong>: <code>175</code> &ndash; typical runs during development took around 2 hours,
+so we wait just under 3 hours</li>
+</ul>
+
+
+<p>The <a href="https://s3-us-west-2.amazonaws.com/telemetry-public-analysis/slowsql/data/slowsql20140308.csv.gz">daily data files</a> are then published in S3 and can be used from the
+Telemetry SlowSQL Dashboard.</p>
+
+<h2>Beyond Typical Scheduling</h2>
+
+<p>The job runner doesn&rsquo;t care if your code uses the <a href="https://raw.github.com/mreid-moz/telemetry-server/master/docs/data_flow.png">python MapReduce</a>
+framework or your own hand-tuned assembly code. It is just a generalized way to
+launch a machine to do some processing on a scheduled basis.</p>
+
+<p>So you&rsquo;re free to implement your analysis using whatever tools best suit the
+job at hand.</p>
+
+<p>The sky is the limit, as long as the code can be packaged up as a tarball and
+executed on a Ubuntu box.</p>
+
+<p>The pseudo-code for the general job logic is
+<code>bash
+fetch $code_tarball
+tar xzvf $code_tarball
+`$execution_commandline`
+cd $output_directory
+publish --recursive ./ s3://public/$job_name/data/
+</code></p>
+
+<h2>Published Output</h2>
+
+<p>One final reminder: Keep in mind that the results of the analysis will be made
+<strong>publicly available</strong> on Amazon S3, so be absolutely sure that the output from
+your job does not include any sensitive data.</p>
+
+<p>Aggregates of the raw data are fine, but it is very important not to output the
+raw data.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Recent Telemetry Data Outages]]></title>
@@ -258,71 +397,6 @@ conversion code to C++.</p>
 
 <p>Keep an eye on the bug above for up-to-the-minute progress information, or as
 always, feel free to drop by <code>#telemetry</code> on <code>irc.mozilla.org</code>.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Two Years In]]></title>
-    <link href="http://mreid-moz.github.io/blog/2013/08/08/two-years-on/"/>
-    <updated>2013-08-08T11:47:00-03:00</updated>
-    <id>http://mreid-moz.github.io/blog/2013/08/08/two-years-on</id>
-    <content type="html"><![CDATA[<p>I figured since I missed it last year, I should post something on my
-Mozillaversary!</p>
-
-<p>I started on the Metrics team on August 8th, 2011, and more recently moved over
-to the Performance team. Lots of fun stuff to learn and do, and I&rsquo;m happier
-than ever that I joined Mozilla.</p>
-
-<p>Two orders of business in this post. First, another status update on the
-Telemetry Reboot project.</p>
-
-<p>Things are basically feature-complete on the server now! Very exciting. The
-high-altitude view looks like this:</p>
-
-<p>Data comes in as HTTPS submissions, and is saved to disk in its raw form. These
-files are converted to the new Histogram storage format, compressed, then sent
-to Amazon S3 for permanent storage.</p>
-
-<p>You can run MapReduce jobs on the S3 data (though at the moment there&rsquo;s a lot
-more time spent on data transfer than I would like). If you run a MapReduce job
-on the server node, you can also include up-to-the-minute data that has not yet
-been exported to S3.</p>
-
-<p>Now that the prototype (which reminds me a bit of this description of the
-<a href="http://www.youtube.com/watch?feature=player_detailpage&amp;v=bzkRVzciAZg&amp;t=158">Hideous Creature</a> <strong>Warning:</strong> strong language) is working, the next step is to
-benchmark things to make sure we can handle release-level volumes.</p>
-
-<p>The second order of business is an interesting thing I learned about Python
-File I/O that I thought I&rsquo;d share.</p>
-
-<p>Normal file writes are not atomic, so if you have a situation where multiple
-concurrent processes are appending lines to the same file, it&rsquo;s possible (and
-in fact very likely) to end up with garbled lines. The Telemetry storage format
-requires that each record be on its own line, so this caused real problems
-during testing.</p>
-
-<p>The solution: use <code>io.open(...)</code>.</p>
-
-<p>For example, doing this will produce non-atomic writes:
-<code>
-fout = open(filename, "a")
-fout.write(some_content)
-fout.close()
-</code></p>
-
-<p>So <code>some_content</code> could actually be written out in multiple disk operations,
-with other writes by other processes in between.</p>
-
-<p>Instead, to achieve atomic writes, you would use something like this:
-```
-with io.open(filename, &ldquo;a&rdquo;) as fout:</p>
-
-<pre><code>fout.write(some_content)
-</code></pre>
-
-<p>```</p>
-
-<p>Maybe this is common knowledge for Python folks, but I hope it helps.</p>
 ]]></content>
   </entry>
   
