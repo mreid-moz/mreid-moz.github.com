@@ -31,7 +31,7 @@ Here's how it works:
 
 -  Visit the analysis provisioning dashboard at [telemetry-dash.mozilla.org][3]
    and sign in using Persona (with an `@mozilla.com` email address as mentioned
-   above). 
+   above).
 -  Enter some details. The `Server Name` field should be a short descriptive
    name, something like 'mreid chromehangs analysis' is good. Upload your
    SSH public key (this allows you to log in to the server once it's started up)
@@ -101,5 +101,5 @@ Happy Data Crunching!
 [1]: https://github.com/mozilla/telemetry-server
 [2]: http://telemetry.mozilla.org
 [3]: http://telemetry-dash.mozilla.org
-[4]: https://github.com/mozilla/telemetry-server/blob/master/analysis/debug-service/server.py
+[4]: https://github.com/mozilla/telemetry-server/blob/master/http/analysis-service/server.py
 [5]: https://github.com/mozilla/telemetry-server/blob/master/mapreduce/examples/filter_saved_session_Fx_prerelease.json
