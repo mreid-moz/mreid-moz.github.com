@@ -3,7 +3,7 @@ layout: post
 title: "Scheduling Telemetry Analysis"
 date: 2014-03-14 14:57
 comments: true
-categories:
+categories: Mozilla
 ---
 
 In a [previous post][1], I described how to run an ad-hoc analysis on the
