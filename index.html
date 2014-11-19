@@ -346,7 +346,11 @@ raw data.</p>
   </header>
 
 
-  <div class="entry-content"><p>The Telemetry Server has been deployed on AWS for just over a month now, so it&rsquo;s
+  <div class="entry-content"><p><strong>Update 2014-11-19</strong>: a few papercuts have been fixed, and data location has
+changed, so the instructions below have been updated since the original post
+from 2013.</p>
+
+<p>The Telemetry Server has been deployed on AWS for just over a month now, so it&rsquo;s
 time for an update.</p>
 
 <p>The server code repository has been moved into the <a href="https://github.com/mozilla/telemetry-server"><em>Mozilla</em> github group</a>,
@@ -361,7 +365,7 @@ much in alpha/beta state, but if you&rsquo;ve got a question that can be answere
 using Telemetry data, you&rsquo;re in luck.</p>
 
 <p>Jonas has built <a href="https://github.com/mozilla/telemetry-server/blob/master/http/analysis-service/server.py">a mechanism for provisioning a ubuntu server as an Amazon EC2
-instance</a>. These machines (<code>m2.4xlarge</code> in EC2 terms) have read-only
+instance</a>. These machines (<code>c3.4xlarge</code> in EC2 terms) have read-only
 permission and a fast connection to Telemetry data stored in S3. Each machine
 will be available for 24 hours, and will cost about $40USD to run. If you don&rsquo;t
 need it for the full day, you can kill it early by following the instructions in
@@ -393,27 +397,12 @@ data in the past) is to run a MapReduce job.</p>
 <p>This requires a bit of setup on the machine you provisioned above:</p>
 
 <ul>
-<li>Clone the <code>telemetry-server</code> github repository:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install git
-</span><span class='line'>$ git clone https://github.com/mozilla/telemetry-server.git</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
 <li>Set up some working directories:</li>
 </ul>
 
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir /mnt/telemetry
-</span><span class='line'>$ sudo chown ubuntu:ubuntu /mnt/telemetry
-</span><span class='line'>$ mkdir /mnt/telemetry/work</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir -p /mnt/telemetry/work</span></code></pre></td></tr></table></div></figure>
 
 
 <ul>
@@ -440,7 +429,7 @@ data in the past) is to run a MapReduce job.</p>
 </span><span class='line'>   --data-dir /mnt/telemetry/work \
 </span><span class='line'>   --work-dir /mnt/telemetry/work \
 </span><span class='line'>   --output /mnt/telemetry/my_mapreduce_results.out \
-</span><span class='line'>   --bucket "telemetry-published-v1"</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>   --bucket "telemetry-published-v2"</span></code></pre></td></tr></table></div></figure>
 
 
 <p>A few notes for successful jobs.</p>
